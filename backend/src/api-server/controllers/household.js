@@ -1,10 +1,17 @@
 const { PrismaClient } = require("../../../generated/prisma");
 const prisma = new PrismaClient();
+const { sendOtpToEmail, verifyOtp } = require("../utils/otp");
 
 const { customAlphabet } = require("nanoid");
 const nanoid = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 12);
 
 const MAX_RETRIES = 5;
+
+function maskEmail(email) {
+    const [name, domain] = email.split("@");
+    const visible = name.slice(0, 4);
+    return `${visible}${"*".repeat(Math.max(0, name.length - 2))}@${domain}`;
+}
 
 const addHouse = async (req, res) => {
     const { address, latitude, longitude, consumerName, primaryEmail, localityId } = req.body;
@@ -56,12 +63,12 @@ const addHouse = async (req, res) => {
         const household = await prisma.household.create({
             data: {
                 id: uniqueId,
-                consumerName:consumerName,
-                address:address,
-                latitude:latitude,
-                longitude:longitude,
-                primaryEmail:primaryEmail,
-                localityId:localityId,
+                consumerName: consumerName,
+                address: address,
+                latitude: latitude,
+                longitude: longitude,
+                primaryEmail: primaryEmail,
+                localityId: localityId,
                 meter: {
                     create: {
                         powerStatus: false,
@@ -80,6 +87,70 @@ const addHouse = async (req, res) => {
     }
 }
 
+const verifyHouse = async (req, res) => {
+    const { consumerId, userId } = req.body;
+
+    if (!consumerId || !userId) {
+        return res.status(500).json("Cosumer Id and userId are required");
+    }
+
+    const house = await prisma.household.findUnique({
+        where: {
+            id: consumerId
+        },
+        select:{
+            primaryEmail:true,
+        }
+    })
+
+    if (!house) {
+        return res.status(400).json({ error: "No such consumer" });
+    }
+
+    const masked = maskEmail(house.primaryEmail);
+
+    await sendOtpToEmail(house.primaryEmail, userId);
+
+    return res.status(200).json(`Otp sent to ${masked}`);
+}
+
+const verifyOtpForHouse = async (req, res) => {
+    const { otp, consumerId, userId } = req.body;
+
+    if (!otp || !consumerId || !userId) {
+        return res.status(400).json({ error: "OTP, ConsumerId and userId are required" });
+    }
+
+    const house = await prisma.household.findUnique({
+        where: {
+            id: consumerId
+        },
+        select:{
+            primaryEmail:true
+        }
+    });
+
+    if (!house) {
+        return res.status(400).json({ error: "No such consumer" });
+    }
+
+    try {
+        const result = await verifyOtp(house.primaryEmail, otp, userId);
+
+        if (!result.success) {
+            return res.status(400).json({ error: result.message });
+        }
+
+        return res.status(200).json({ success: result.message });
+    } catch (error) {
+        console.error("OTP verification failed:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+
 module.exports = {
     addHouse,
+    verifyHouse,
+    verifyOtpForHouse
 }

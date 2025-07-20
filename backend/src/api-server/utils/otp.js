@@ -29,9 +29,12 @@ const sendOtpToEmail = async (email, userId) => {
     )
 }
 
-const verifyOtp = async (email, enteredOtp) => {
+const verifyOtp = async (email, enteredOtp,userId) => {
     const record = await prisma.otp.findFirst({
-        where: { email },
+        where: { 
+            email,
+            userId
+        },
         orderBy: { createdAt: "desc" },
     });
 

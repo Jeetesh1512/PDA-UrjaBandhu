@@ -75,6 +75,7 @@ model Household {
   Bill         Bill[]
 
   @@index([latitude, longitude])
+  @@index([id])
 }
 
 model Meter {
@@ -263,7 +264,7 @@ model Otp {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
-  @@index([email])
+  @@index([email,userId])
 }
 
 enum RelatedType {
