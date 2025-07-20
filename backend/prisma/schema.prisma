@@ -256,6 +256,7 @@ model Otp {
   id        String   @id @default(uuid())
   email     String
   code      String
+  verified  Boolean @default(false)
   expiresAt DateTime
   createdAt DateTime @default(now())
 

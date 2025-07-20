@@ -53,9 +53,17 @@ const verifyOtp = async (email, enteredOtp) => {
         };
     }
 
+    await prisma.otp.update({
+        where: { id: record.id },
+        data: { verified: true },
+    });
+
     await prisma.otp.deleteMany({
         where: {
-            email
+            OR: [
+                { verified: true },
+                { expiresAt: { lt: new Date() } }
+            ]
         }
     });
 

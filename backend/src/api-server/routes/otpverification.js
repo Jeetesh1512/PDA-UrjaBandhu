@@ -6,7 +6,7 @@ router.post("/send-otp", async (req, res) => {
     const { email } = req.body;
 
     if (!email) {
-        return res.status(400).json({ message: "Email are required" });
+        return res.status(400).json({ message: "Email is required" });
     }
 
     await sendOtpToEmail(email);
