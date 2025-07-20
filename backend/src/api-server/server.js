@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors");
 const householdRoute = require("./routes/household");
 const localityRoute = require("./routes/locality");
+const otpRoute = require("./routes/otpverification");
 
 app.use(express.json());
 app.use(cors({
@@ -14,6 +15,7 @@ app.use(cors({
 
 app.use("/api/locality",localityRoute);
 app.use("/api/household",householdRoute);
+app.use("/api/otp",otpRoute);
 
 app.listen(8080, () => {
     console.log("Server running on http://localhost:8080")
