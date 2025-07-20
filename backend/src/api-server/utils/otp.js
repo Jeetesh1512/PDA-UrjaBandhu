@@ -6,22 +6,23 @@ function generateOtp() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-const sendOtpToEmail = async (email) => {
+const sendOtpToEmail = async (email, userId) => {
     const otp = generateOtp();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     await prisma.otp.create({
         data: {
+            userId,
             email,
             code: otp,
             expiresAt,
         }
     });
 
-    const subject = "Your OTP for verification of the entered consumer id";
+    const subject = `OTP for verification of the entered consumer id`;
     const text = `Your OTP is ${otp}. It is valid for 10 minutes.`;
 
-    const mail = await sendNotificationEmail(
+    await sendNotificationEmail(
         email,
         subject,
         text

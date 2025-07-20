@@ -26,6 +26,7 @@ model User {
   lineman               Lineman?
   basicUser             BasicUser?
   NotificationRecipient NotificationRecipient[]
+  Otp                   Otp[]
 }
 
 enum Role {
@@ -254,9 +255,11 @@ enum BillStatus {
 
 model Otp {
   id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
   email     String
   code      String
-  verified  Boolean @default(false)
+  verified  Boolean  @default(false)
   expiresAt DateTime
   createdAt DateTime @default(now())
 
