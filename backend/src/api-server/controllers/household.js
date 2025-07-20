@@ -1,3 +1,4 @@
+const { errorMonitor } = require("nodemailer/lib/xoauth2");
 const { PrismaClient } = require("../../../generated/prisma");
 const prisma = new PrismaClient();
 const { sendOtpToEmail, verifyOtp } = require("../utils/otp");
@@ -9,7 +10,7 @@ const MAX_RETRIES = 5;
 
 function maskEmail(email) {
     const [name, domain] = email.split("@");
-    const visible = name.slice(0, 4);
+    const visible = name.slice(0, 5);
     return `${visible}${"*".repeat(Math.max(0, name.length - 2))}@${domain}`;
 }
 
@@ -140,6 +141,24 @@ const verifyOtpForHouse = async (req, res) => {
         if (!result.success) {
             return res.status(400).json({ error: result.message });
         }
+
+        const newbasicuser = await prisma.basicUser.findUnique({
+            where:{
+                id:userId,
+                householdId:consumerId
+            }
+        })
+
+        if(newbasicuser){
+            return res.status(400).json({error:"User already linked with the household"});
+        }
+
+        await prisma.basicUser.create({
+            data:{
+                id:userId,
+                householdId:consumerId
+            }
+        })
 
         return res.status(200).json({ success: result.message });
     } catch (error) {

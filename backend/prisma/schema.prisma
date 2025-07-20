@@ -126,7 +126,7 @@ model Incident {
   status        IncidentStatus   @default(REPORTED)
   locality      Locality         @relation(fields: [localityId], references: [id], onDelete: Cascade)
   localityId    String
-  photoUrl      String
+  photoUrl      String?
   reports       Report[]
   updates       IncidentUpdate[]
   notifications Notification[]
