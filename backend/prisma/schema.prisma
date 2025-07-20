@@ -16,8 +16,9 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
+  id            String         @id
   email         String         @unique
+  name          String
   role          Role           @default(BASIC_USER)
   notifications Notification[]
 
@@ -53,23 +54,24 @@ model BasicUser {
   id          String     @id
   household   Household  @relation(fields: [householdId], references: [id], onDelete: Cascade)
   householdId String
-  photoUrl    String
   Incident    Incident[]
 
   @@unique([id, householdId])
 }
 
 model Household {
-  id           String      @id @default(uuid())
+  id           String        @id
+  consumerName String
   address      String
   latitude     Float
   longitude    Float
-  primaryEmail String?
-  verified     Boolean     @default(false)
-  locality     Locality    @relation(fields: [localityId], references: [id], onDelete: Cascade)
+  primaryEmail String
+  locality     Locality      @relation(fields: [localityId], references: [id], onDelete: Cascade)
   localityId   String
   residents    BasicUser[]
   meter        Meter[]
+  Transaction  Transaction[]
+  Bill         Bill[]
 
   @@index([latitude, longitude])
 }
@@ -87,7 +89,7 @@ model Meter {
 
 model Locality {
   id          String        @id @default(uuid())
-  location    String
+  location    String        @unique
   households  Household[]
   lineman     Lineman[]
   incidents   Incident[]
@@ -207,6 +209,56 @@ model NotificationRecipient {
   notificationId String
   user           User         @relation(fields: [userId], references: [id])
   userId         String
+}
+
+model Transaction {
+  id          String          @id @default(uuid())
+  household   Household       @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId String
+  amount      Float
+  type        TransactionType
+  timestamp   DateTime        @default(now())
+  bill        Bill?           @relation(fields: [billId], references: [id])
+  billId      String?
+
+  @@index([householdId])
+  @@index([timestamp])
+}
+
+model Bill {
+  id           String        @id @default(uuid())
+  household    Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId  String
+  billingMonth DateTime
+  totalAmount  Float
+  status       BillStatus    @default(PENDING)
+  issuedAt     DateTime      @default(now())
+  dueDate      DateTime
+  transactions Transaction[]
+
+  @@unique([householdId, billingMonth])
+  @@index([householdId, billingMonth])
+}
+
+enum TransactionType {
+  PAYMENT
+  ADJUSTMENT
+  REFUND
+}
+
+enum BillStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+model Otp {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 enum RelatedType {
