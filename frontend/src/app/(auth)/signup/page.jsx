@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/utils/supabase-client";
 import Link from "next/link";
+import AuthSideBanner from "@/components/AuthSideBanner";
 
 export default function SignUp() {
   const [credentials, setCredentials] = useState({
@@ -11,6 +12,7 @@ export default function SignUp() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [signupComplete, setSignupComplete] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,17 +41,22 @@ export default function SignUp() {
       return;
     }
 
+    setSignupComplete(true);
     setCredentials({
       email: "",
       password: "",
       name: "",
     });
+
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 3000);
   };
 
   return (
     <>
       <div className="min-h-screen flex flex-col md:flex-row">
-        <div className="md:w-1/3 w-full bg-neutral-900 p-10 flex flex-col justify-between">
+        <div className="w-full lg:w-1/3 bg-neutral-900 p-10 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl text-amber-50 font-mono font-extrabold">
               PDA Ltd.
@@ -60,6 +67,13 @@ export default function SignUp() {
             <h1 className="text-2xl text-amber-50 font-semibold mb-6">
               Sign Up here
             </h1>
+            {signupComplete && (
+              <div className="bg-green-700 text-white px-4 py-2 rounded mb-4 text-sm">
+                Check your email to confirm your account. Redirecting to
+                login...
+              </div>
+            )}
+
             <form onSubmit={handleSingup} className="space-y-4 p-6">
               <input
                 onChange={handleChange}
@@ -98,7 +112,11 @@ export default function SignUp() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
                   onClick={() => setShowPassword((prev) => !prev)}
                 >
-                  {showPassword ? (<img className="h-7" src="/eye.png" alt="hidden"/>) : (<img className="h-7" src="/close.png" alt="visible"/>)}
+                  {showPassword ? (
+                    <img className="h-7" src="/eye.png" alt="hidden" />
+                  ) : (
+                    <img className="h-7" src="/close.png" alt="visible" />
+                  )}
                 </span>
               </div>
 
@@ -134,28 +152,7 @@ export default function SignUp() {
             <p className="text-gray-500">@2025 PDA LTD., ALL RIGHTS RESERVED</p>
           </div>
         </div>
-        <div className="md:w-2/3 w-full bg-[url(/home-bg.jpg)] bg-cover bg-center bg-no-repeat text-white p-10 flex items-center justify-center">
-          <div className="bg-neutral-900 p-6 rounded-xl max-w-sm">
-            <p className="mb-4">
-              Because power is more than electricity — it's comfort, safety, and
-              community. We're here to protect it, together.
-            </p>
-
-            <div className="flex flex-row gap-6">
-              <img
-                src="/owner-profile.jpeg"
-                alt="profile"
-                className="h-18 w-15 rounded-4xl"
-              />
-              <div className="flex justify-center flex-col">
-                <p className="text-sm font-semibold">RAHUL NAIR</p>
-                <p className="text-xs text-gray-400">
-                  POWER INFRASTRUCTURE LEAD
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AuthSideBanner />
       </div>
     </>
   );

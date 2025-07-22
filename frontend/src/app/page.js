@@ -1,6 +1,8 @@
 "use client"
 import { supabase } from "@/utils/supabase-client";
 import { useEffect, useState } from "react";
+import Dashboard from "./dashboard/page";
+import Login from "./(auth)/login/page";
 
 export default function Home() {
     const [session, setSession] = useState(null);
@@ -21,9 +23,9 @@ export default function Home() {
     return (
         <>
             {session ? (
-                <h1>Signed In</h1>
+                <Dashboard/>
             ) : (
-                <h1>Not Signed In</h1>
+                <Login/>
             )}
         </>
     )
