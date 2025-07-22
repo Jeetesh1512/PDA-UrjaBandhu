@@ -10,6 +10,8 @@ export default function SignUp() {
     name: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCredentials((prev) => ({
@@ -46,43 +48,115 @@ export default function SignUp() {
 
   return (
     <>
-      <h1>Sign Up here</h1>
-      <form className="flex flex-row justify-center">
-        <label htmlFor="name">Full Name: </label>
-        <input
-          onChange={handleChange}
-          type="text"
-          id="name"
-          name="name"
-          value={credentials.name}
-          placeholder="Enter your full name"
-          required
-        />
-        <label htmlFor="email">Email: </label>
-        <input
-          onChange={handleChange}
-          type="email"
-          id="email"
-          name="email"
-          value={credentials.email}
-          placeholder="Enter Valid email"
-          required
-        />
-        <label htmlFor="password">Password: </label>
-        <input
-          onChange={handleChange}
-          type="password"
-          id="password"
-          name="password"
-          placeholder="Enter Password"
-          value={credentials.password}
-          required
-        />
-        <button onClick={handleSingup}>SignUp</button>
+      <div className="min-h-screen flex flex-col md:flex-row">
+        <div className="md:w-1/3 w-full bg-neutral-900 p-10 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl text-amber-50 font-mono font-extrabold">
+              PDA Ltd.
+            </h1>
+            <img src="/logo.png" className="w-10 h-10" alt="icon" />
+          </div>
+          <div>
+            <h1 className="text-2xl text-amber-50 font-semibold mb-6">
+              Sign Up here
+            </h1>
+            <form onSubmit={handleSingup} className="space-y-4 p-6">
+              <input
+                onChange={handleChange}
+                type="text"
+                id="name"
+                name="name"
+                value={credentials.name}
+                placeholder="Enter your full name"
+                required
+                className="w-full focus:outline-none  placeholder:text-gray-300 bg-neutral-700 h-10 p-3"
+              />
+              <input
+                onChange={handleChange}
+                type="email"
+                id="email"
+                name="email"
+                value={credentials.email}
+                placeholder="Enter Valid email"
+                required
+                className="w-full focus:outline-none  placeholder:text-gray-300  bg-neutral-700 h-10 p-3"
+              />
+              <div className="relative w-full">
+                <input
+                  onChange={handleChange}
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  placeholder="Enter Password"
+                  value={credentials.password}
+                  pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$"
+                  title="Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+                  required
+                  className="w-full focus:outline-none placeholder:text-gray-300 bg-neutral-700 h-10 p-3 pr-10"
+                />
+                <span
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? (<img className="h-7" src="/eye.png" alt="hidden"/>) : (<img className="h-7" src="/close.png" alt="visible"/>)}
+                </span>
+              </div>
 
-        <p>Existing User? </p>
-        <Link href={"/login"}> Login here</Link>
-      </form>
+              <p className="text-gray-300 text-xs">
+                Password requirements:8 characters including [A-Za-z0-9] and
+                special character (e.g. !@#$).
+              </p>
+
+              <div className="flex m-4 items-center justify-center">
+                <button
+                  type="submit"
+                  className="bg-cyan-700 text-amber-50 font-extrabold p-1.5 hover:cursor-pointer hover:bg-blue-600 px-5 rounded-xl text-xl"
+                >
+                  SignUp
+                </button>
+              </div>
+              <div className="flex flex-row py-4 text-xl">
+                <p className="mx-3 font-semibold text-gray-300">
+                  Existing User?
+                </p>
+                <Link
+                  href={"/login"}
+                  className="text-cyan-800 hover:text-blue-400 hover:underline"
+                >
+                  {" "}
+                  Login here
+                </Link>
+              </div>
+            </form>
+          </div>
+
+          <div>
+            <p className="text-gray-500">@2025 PDA LTD., ALL RIGHTS RESERVED</p>
+          </div>
+        </div>
+        <div className="md:w-2/3 w-full bg-[url(/home-bg.jpg)] bg-cover bg-center bg-no-repeat text-white p-10 flex items-center justify-center">
+          <div className="bg-neutral-900 p-6 rounded-xl max-w-sm">
+            <p className="mb-4">
+              Because power is more than electricity — it's comfort, safety, and
+              community. We're here to protect it, together.
+            </p>
+
+            <div className="flex flex-row gap-6">
+              <img
+                src="/owner-profile.jpeg"
+                alt="profile"
+                className="h-18 w-15 rounded-4xl"
+              />
+              <div className="flex justify-center flex-col">
+                <p className="text-sm font-semibold">RAHUL NAIR</p>
+                <p className="text-xs text-gray-400">
+                  POWER INFRASTRUCTURE LEAD
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
