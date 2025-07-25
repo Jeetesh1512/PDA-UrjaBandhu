@@ -7,8 +7,8 @@ const { supabase } = require("../utils/supabase-server");
 router.post("/signup", async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
 
-    const { name } = req.body;
     const { data: userInfo, error } = await supabase.auth.getUser(token);
+    const name = userInfo.user?.user_metadata?.name;
 
     if (error) {
         return res.status(401).json({ error: "User not authorized" });

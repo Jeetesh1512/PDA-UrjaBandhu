@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "@/utils/supabase-client";
 import Link from "next/link";
 import AuthSideBanner from "@/components/AuthSideBanner";
+import { signup } from "./actions";
+import { useRouter } from "next/navigation";
 
 export default function SignUp() {
   const [credentials, setCredentials] = useState({
@@ -11,8 +12,9 @@ export default function SignUp() {
     name: "",
   });
 
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const [signupComplete, setSignupComplete] = useState(false);
+  const [message, setMessage] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,35 +24,27 @@ export default function SignUp() {
     }));
   };
 
-  const handleSingup = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const { email, password } = credentials;
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `http://localhost:3000/mail-redirect`,
-        data: {
-          name: credentials.name,
-        },
-      },
-    });
 
-    if (error) {
-      console.error("Error Signing up");
-      return;
+    const formData = new FormData();
+    formData.set("email", credentials.email);
+    formData.set("password", credentials.password);
+    formData.set("name", credentials.name);
+
+    const result = await signup(formData);
+
+    if (result?.error) {
+      setMessage({ type: "error", text: result.error });
+    } else {
+      setMessage({
+        type: "success",
+        text: "Please check your email to confirm.",
+      });
+      setTimeout(() => {
+        router.push("/login");
+      }, 5000);
     }
-
-    setSignupComplete(true);
-    setCredentials({
-      email: "",
-      password: "",
-      name: "",
-    });
-
-    setTimeout(() => {
-      window.location.href = "/login";
-    }, 3000);
   };
 
   return (
@@ -67,14 +61,8 @@ export default function SignUp() {
             <h1 className="text-2xl text-amber-50 font-semibold mb-6">
               Sign Up here
             </h1>
-            {signupComplete && (
-              <div className="bg-green-700 text-white px-4 py-2 rounded mb-4 text-sm">
-                Check your email to confirm your account. Redirecting to
-                login...
-              </div>
-            )}
 
-            <form onSubmit={handleSingup} className="space-y-4 p-6">
+            <form onSubmit={handleSubmit} className="space-y-4 p-6">
               <input
                 onChange={handleChange}
                 type="text"
@@ -124,6 +112,16 @@ export default function SignUp() {
                 Password requirements:8 characters including [A-Za-z0-9] and
                 special character (e.g. !@#$).
               </p>
+
+              {message && (
+                <div
+                  className={`text-sm ${
+                    message.type === "error" ? "text-red-500" : "text-green-500"
+                  }`}
+                >
+                  {message.text}
+                </div>
+              )}
 
               <div className="flex m-4 items-center justify-center">
                 <button

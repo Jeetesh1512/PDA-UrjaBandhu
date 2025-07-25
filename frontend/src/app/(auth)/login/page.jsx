@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "@/utils/supabase-client";
+import { login } from "./actions";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthSideBanner from "@/components/AuthSideBanner";
@@ -23,28 +23,6 @@ export default function Login() {
     }));
   };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    const { email, password } = credentials;
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      console.error("Login error:", error.message);
-      return;
-    }
-
-    setCredentials({
-      email: "",
-      password: "",
-    });
-
-    router.push("/");
-  };
-
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       <div className="w-full lg:w-1/3 bg-neutral-900 p-10 flex flex-col justify-between">
@@ -59,7 +37,7 @@ export default function Login() {
           <h1 className="text-2xl text-amber-50 font-semibold mb-6">
             Login here
           </h1>
-          <form onSubmit={handleLogin} className="space-y-4 p-6">
+          <form className="space-y-4 p-6">
             <input
               onChange={handleChange}
               type="email"
@@ -103,7 +81,7 @@ export default function Login() {
 
             <div className="flex m-4 items-center justify-center">
               <button
-                type="submit"
+                formAction={login}
                 className="bg-cyan-700 text-amber-50 font-extrabold p-1.5 hover:cursor-pointer hover:bg-blue-600 px-5 rounded-xl text-xl"
               >
                 Login

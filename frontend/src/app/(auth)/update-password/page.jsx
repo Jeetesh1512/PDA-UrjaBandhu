@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "@/utils/supabase-client";
+import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import AuthSideBanner from "@/components/AuthSideBanner";
 

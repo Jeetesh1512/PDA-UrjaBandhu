@@ -1,28 +1,33 @@
 "use client";
 import { useState } from "react";
-import { supabase } from "@/utils/supabase-client";
+import { resetPassword } from "./actions";
 import Link from "next/link";
 import AuthSideBanner from "@/components/AuthSideBanner";
+import { useRouter } from "next/navigation";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [message, setMessage] = useState(null);
+  const [error, setError] = useState(null);
+  const [sent,setSent] = useState(false);
+  const router = useRouter();
 
-  const handleReset = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
-    setError("");
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: "http://localhost:3000/update-password",
-    });
+    const formData = new FormData();
+    formData.append("email", email);
 
-    if (error) {
-      setError(error.message);
+    const res = await resetPassword(formData);
+
+    if (res?.error) {
+      setError(res.error);
+      setMessage(null);
     } else {
-      setMessage("Password reset link sent! Check your email.");
-      setEmail("");
+      setMessage(res.message);
+      setError(null);
+
+      setSent(true);
     }
   };
 
@@ -30,29 +35,26 @@ export default function ForgotPassword() {
     <div className="min-h-screen flex flex-col md:flex-row">
       <div className="w-full lg:w-1/3 bg-neutral-900 p-10 flex flex-col justify-between">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl text-amber-50 font-mono font-extrabold">
-            PDA Ltd.
-          </h1>
+          <h1 className="text-3xl text-amber-50 font-mono font-extrabold">PDA Ltd.</h1>
           <img src="/logo.png" className="w-10 h-10" alt="icon" />
         </div>
 
-        <form onSubmit={handleReset} className="space-y-4 p-6">
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Forgot Password?
-          </h2>
-
-          {message && <p className="text-green-500">{message}</p>}
-          {error && <p className="text-red-500">{error}</p>}
+        <form className="space-y-4 p-6" onSubmit={handleSubmit}>
+          <h2 className="text-2xl font-bold text-white mb-2">Forgot Password?</h2>
 
           <input
             type="email"
             placeholder="Enter your email to reset"
             required
             value={email}
-            disabled={!!message}
+            disabled={sent}
+            name="email"
             onChange={(e) => setEmail(e.target.value)}
             className="w-full disabled:cursor-not-allowed focus:outline-none placeholder:text-gray-300 bg-neutral-700 h-10 p-3"
           />
+
+          {error && <p className="text-red-500 text-xl">{error}</p>}
+          {message && <p className="text-green-500 text-xl">{message}</p>}
 
           <div className="flex m-4 items-center justify-center">
             <button
