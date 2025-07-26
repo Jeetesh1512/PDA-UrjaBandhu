@@ -88,7 +88,8 @@ const addHouse = async (req, res) => {
 }
 
 const verifyHouse = async (req, res) => {
-    const { consumerId, userId } = req.body;
+    const { consumerId } = req.body;
+    const userId = req.user.id
 
     if (!consumerId || !userId) {
         return res.status(500).json("Cosumer Id and userId are required");
@@ -115,7 +116,8 @@ const verifyHouse = async (req, res) => {
 }
 
 const verifyOtpForHouse = async (req, res) => {
-    const { otp, consumerId, userId } = req.body;
+    const { otp, consumerId } = req.body;
+    const userId = req.user.id;
 
     if (!otp || !consumerId || !userId) {
         return res.status(400).json({ error: "OTP, ConsumerId and userId are required" });

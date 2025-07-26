@@ -5,6 +5,12 @@ CREATE TYPE "Role" AS ENUM ('ADMIN', 'LINEMAN', 'BASIC_USER');
 CREATE TYPE "IncidentStatus" AS ENUM ('REPORTED', 'IN_PROGRESS', 'RESOLVED');
 
 -- CreateEnum
+CREATE TYPE "TransactionType" AS ENUM ('PAYMENT', 'ADJUSTMENT', 'REFUND');
+
+-- CreateEnum
+CREATE TYPE "BillStatus" AS ENUM ('PENDING', 'PAID', 'OVERDUE');
+
+-- CreateEnum
 CREATE TYPE "RelatedType" AS ENUM ('INCIDENT', 'OUTAGE', 'REPORT', 'APPOINTMENT');
 
 -- CreateEnum
@@ -14,6 +20,7 @@ CREATE TYPE "NotificationType" AS ENUM ('ALERT', 'RESOLVED', 'SCHEDULED', 'ASSIG
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
     "role" "Role" NOT NULL DEFAULT 'BASIC_USER',
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
@@ -37,7 +44,6 @@ CREATE TABLE "Lineman" (
 CREATE TABLE "BasicUser" (
     "id" TEXT NOT NULL,
     "householdId" TEXT NOT NULL,
-    "photoUrl" TEXT NOT NULL,
 
     CONSTRAINT "BasicUser_pkey" PRIMARY KEY ("id")
 );
@@ -45,11 +51,11 @@ CREATE TABLE "BasicUser" (
 -- CreateTable
 CREATE TABLE "Household" (
     "id" TEXT NOT NULL,
+    "consumerName" TEXT NOT NULL,
     "address" TEXT NOT NULL,
     "latitude" DOUBLE PRECISION NOT NULL,
     "longitude" DOUBLE PRECISION NOT NULL,
-    "primaryEmail" TEXT,
-    "verified" BOOLEAN NOT NULL DEFAULT false,
+    "primaryEmail" TEXT NOT NULL,
     "localityId" TEXT NOT NULL,
 
     CONSTRAINT "Household_pkey" PRIMARY KEY ("id")
@@ -70,6 +76,7 @@ CREATE TABLE "Meter" (
 CREATE TABLE "Locality" (
     "id" TEXT NOT NULL,
     "location" TEXT NOT NULL,
+    "boundary" geometry(MultiPolygon, 4326) NOT NULL,
 
     CONSTRAINT "Locality_pkey" PRIMARY KEY ("id")
 );
@@ -89,14 +96,12 @@ CREATE TABLE "Appointment" (
 CREATE TABLE "Incident" (
     "id" TEXT NOT NULL,
     "reporterId" TEXT NOT NULL,
-    "location" TEXT NOT NULL,
     "latitude" DOUBLE PRECISION NOT NULL,
     "longitude" DOUBLE PRECISION NOT NULL,
     "description" TEXT NOT NULL,
     "status" "IncidentStatus" NOT NULL DEFAULT 'REPORTED',
     "localityId" TEXT NOT NULL,
-    "photoUrl" TEXT NOT NULL,
-    "basicUserId" TEXT NOT NULL,
+    "photoUrl" TEXT,
 
     CONSTRAINT "Incident_pkey" PRIMARY KEY ("id")
 );
@@ -162,6 +167,44 @@ CREATE TABLE "NotificationRecipient" (
 );
 
 -- CreateTable
+CREATE TABLE "Transaction" (
+    "id" TEXT NOT NULL,
+    "householdId" TEXT NOT NULL,
+    "amount" DOUBLE PRECISION NOT NULL,
+    "type" "TransactionType" NOT NULL,
+    "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "billId" TEXT,
+
+    CONSTRAINT "Transaction_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Bill" (
+    "id" TEXT NOT NULL,
+    "householdId" TEXT NOT NULL,
+    "billingMonth" TIMESTAMP(3) NOT NULL,
+    "totalAmount" DOUBLE PRECISION NOT NULL,
+    "status" "BillStatus" NOT NULL DEFAULT 'PENDING',
+    "issuedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "dueDate" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Bill_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Otp" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "verified" BOOLEAN NOT NULL DEFAULT false,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Otp_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_LinemanToLocality" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -179,7 +222,13 @@ CREATE UNIQUE INDEX "BasicUser_id_householdId_key" ON "BasicUser"("id", "househo
 CREATE INDEX "Household_latitude_longitude_idx" ON "Household"("latitude", "longitude");
 
 -- CreateIndex
+CREATE INDEX "Household_id_idx" ON "Household"("id");
+
+-- CreateIndex
 CREATE INDEX "Meter_powerStatus_idx" ON "Meter"("powerStatus");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Locality_location_key" ON "Locality"("location");
 
 -- CreateIndex
 CREATE INDEX "Locality_location_idx" ON "Locality"("location");
@@ -215,6 +264,21 @@ CREATE INDEX "Notification_userId_notificationType_idx" ON "Notification"("userI
 CREATE INDEX "Notification_relatedType_relatedId_idx" ON "Notification"("relatedType", "relatedId");
 
 -- CreateIndex
+CREATE INDEX "Transaction_householdId_idx" ON "Transaction"("householdId");
+
+-- CreateIndex
+CREATE INDEX "Transaction_timestamp_idx" ON "Transaction"("timestamp");
+
+-- CreateIndex
+CREATE INDEX "Bill_householdId_billingMonth_idx" ON "Bill"("householdId", "billingMonth");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Bill_householdId_billingMonth_key" ON "Bill"("householdId", "billingMonth");
+
+-- CreateIndex
+CREATE INDEX "Otp_email_userId_idx" ON "Otp"("email", "userId");
+
+-- CreateIndex
 CREATE INDEX "_LinemanToLocality_B_index" ON "_LinemanToLocality"("B");
 
 -- AddForeignKey
@@ -245,7 +309,7 @@ ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_adminId_fkey" FOREIGN KEY 
 ALTER TABLE "Appointment" ADD CONSTRAINT "Appointment_linemanId_fkey" FOREIGN KEY ("linemanId") REFERENCES "Lineman"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Incident" ADD CONSTRAINT "Incident_basicUserId_fkey" FOREIGN KEY ("basicUserId") REFERENCES "BasicUser"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Incident" ADD CONSTRAINT "Incident_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "BasicUser"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Incident" ADD CONSTRAINT "Incident_localityId_fkey" FOREIGN KEY ("localityId") REFERENCES "Locality"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -285,6 +349,18 @@ ALTER TABLE "NotificationRecipient" ADD CONSTRAINT "NotificationRecipient_notifi
 
 -- AddForeignKey
 ALTER TABLE "NotificationRecipient" ADD CONSTRAINT "NotificationRecipient_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_householdId_fkey" FOREIGN KEY ("householdId") REFERENCES "Household"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_billId_fkey" FOREIGN KEY ("billId") REFERENCES "Bill"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Bill" ADD CONSTRAINT "Bill_householdId_fkey" FOREIGN KEY ("householdId") REFERENCES "Household"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Otp" ADD CONSTRAINT "Otp_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_LinemanToLocality" ADD CONSTRAINT "_LinemanToLocality_A_fkey" FOREIGN KEY ("A") REFERENCES "Lineman"("id") ON DELETE CASCADE ON UPDATE CASCADE;

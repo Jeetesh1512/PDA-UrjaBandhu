@@ -118,9 +118,8 @@ model Appointment {
 
 model Incident {
   id            String           @id @default(uuid())
-  reporter      BasicUser        @relation(fields: [basicUserId], references: [id])
+  reporter      BasicUser        @relation(fields: [reporterId], references: [id])
   reporterId    String
-  location      String
   latitude      Float
   longitude     Float
   description   String
@@ -131,7 +130,6 @@ model Incident {
   reports       Report[]
   updates       IncidentUpdate[]
   notifications Notification[]
-  basicUserId   String
 
   @@index([localityId, status])
   @@index([latitude, longitude])
