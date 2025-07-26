@@ -1,32 +1,69 @@
-const { PrismaClient } = require("../../../generated/prisma");
-const { supabase } = require("../../auth-server/utils/supabase-server");
+const fs = require('fs');
+const path = require('path');
+const { PrismaClient } = require('../../../generated/prisma');
 const prisma = new PrismaClient();
 
-const addLocality = async (req, res) => {
-    const { location } = req.body;
+async function insertFeature(feature) {
+    const location = feature.properties?.Office_Name || 'Unknown';
+    const geometry = JSON.stringify(feature.geometry);
 
     try {
-        const existingLocality = await prisma.locality.findUnique({
-            where: { location }
-        });
+        await prisma.$executeRaw`
+        INSERT INTO "Locality"(id, location, boundary)
+        VALUES (gen_random_uuid(), ${location}, ST_SetSRID(ST_Multi(ST_GeomFromGeoJSON(${geometry})), 4326))
+        ON CONFLICT (location) DO NOTHING`
+    } catch (err) {
+        console.error(`Failed to insert ${location}:`, err.message);
+    }
+}
 
-        if (existingLocality) {
-            return res.status(400).json({ error: "Location already exists" });
+
+const addLocalities = async (req, res) => {
+    const filePath = path.join(__dirname, '..', 'utils', 'locations.geojson');
+
+    try {
+        const data = fs.readFileSync(filePath, 'utf8');
+        const geojson = JSON.parse(data);
+
+        if (!geojson.features || !Array.isArray(geojson.features)) {
+            return res.status(400).json({ error: 'Invalid GeoJSON format' });
         }
 
-        const locality = await prisma.locality.create({
-            data: { location }
-        });
+        for (const feature of geojson.features) {
+            await insertFeature(feature);
+        }
 
-        return res.status(201).json({ success: "Added Locality Successfully", locality });
+        res.status(200).json({ message: 'Locations inserted successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to process GeoJSON file' });
+    }
+};
 
+const findLocality = async (req, res) => {
+    const {latitude, longitude} = req.body;
 
+    try {
+        const result = await prisma.$queryRaw`
+      SELECT location FROM "Locality"
+      WHERE ST_Contains(
+        boundary,
+        ST_SetSRID(ST_Point(${longitude}, ${latitude}), 4326)
+      )
+      LIMIT 1;
+    `;
 
+        if (result.length > 0) {
+            res.status(200).json(`Location found: ${result[0].location}`);
+        } else {
+            res.status(400).json("No matching location found for the coordinates.");
+        }
     } catch (error) {
-        return res.status(500).json({ error: "Internal Server Error" })
+        res.status(500).json({error:"Error during location lookup:"});
     }
 }
 
 module.exports = {
-    addLocality
-}
+    addLocalities,
+    findLocality
+};

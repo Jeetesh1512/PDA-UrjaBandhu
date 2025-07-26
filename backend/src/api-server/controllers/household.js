@@ -1,4 +1,3 @@
-const { errorMonitor } = require("nodemailer/lib/xoauth2");
 const { PrismaClient } = require("../../../generated/prisma");
 const prisma = new PrismaClient();
 const { sendOtpToEmail, verifyOtp } = require("../utils/otp");
