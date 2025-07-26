@@ -90,8 +90,9 @@ model Meter {
 }
 
 model Locality {
-  id          String        @id @default(uuid())
-  location    String        @unique
+  id          String                  @id @default(uuid())
+  location    String                  @unique
+  boundary    Unsupported("geometry")
   households  Household[]
   lineman     Lineman[]
   incidents   Incident[]
@@ -264,7 +265,7 @@ model Otp {
   expiresAt DateTime
   createdAt DateTime @default(now())
 
-  @@index([email,userId])
+  @@index([email, userId])
 }
 
 enum RelatedType {
