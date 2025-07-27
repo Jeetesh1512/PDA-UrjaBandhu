@@ -6,6 +6,7 @@ const localityRoute = require("./routes/locality");
 const otpRoute = require("./routes/otpverification");
 const incidentRoute = require("./routes/incident");
 const uploadRoute = require("./routes/upload");
+const outageRoute = require("./routes/outage");
 
 //middlewares
 app.use(express.json());
@@ -23,8 +24,9 @@ app.use(cors({
 app.use("/api/locality", localityRoute);
 app.use("/api/household", householdRoute);
 app.use("/api/otp", otpRoute);
-app.use("/api/photos",uploadRoute)
-app.use("/api/incident",incidentRoute);
+app.use("/api/photos", uploadRoute)
+app.use("/api/incident", incidentRoute);
+app.use("/api/outage", outageRoute);
 
 app.listen(8080, () => {
     console.log("Server running on http://localhost:8080")

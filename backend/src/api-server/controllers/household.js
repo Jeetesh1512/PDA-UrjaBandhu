@@ -88,7 +88,7 @@ const addHouse = async (req, res) => {
 }
 
 const verifyHouse = async (req, res) => {
-    const { consumerId } = req.body;
+    const { consumerId } = req.params;
     const userId = req.user.id
 
     if (!consumerId || !userId) {
@@ -99,8 +99,8 @@ const verifyHouse = async (req, res) => {
         where: {
             id: consumerId
         },
-        select:{
-            primaryEmail:true,
+        select: {
+            primaryEmail: true,
         }
     })
 
@@ -116,24 +116,21 @@ const verifyHouse = async (req, res) => {
 }
 
 const verifyOtpForHouse = async (req, res) => {
-    const { otp, consumerId } = req.body;
+    const { otp } = req.body;
+    const { consumerId } = req.params;
     const userId = req.user.id;
 
     if (!otp || !consumerId || !userId) {
-        return res.status(400).json({ error: "OTP, ConsumerId and userId are required" });
+        return res.status(400).json({ error: "OTP, Consumer ID and user ID are required" });
     }
 
     const house = await prisma.household.findUnique({
-        where: {
-            id: consumerId
-        },
-        select:{
-            primaryEmail:true
-        }
+        where: { id: consumerId },
+        select: { primaryEmail: true }
     });
 
     if (!house) {
-        return res.status(400).json({ error: "No such consumer" });
+        return res.status(404).json({ error: "No such consumer" });
     }
 
     try {
@@ -143,25 +140,31 @@ const verifyOtpForHouse = async (req, res) => {
             return res.status(400).json({ error: result.message });
         }
 
-        const newbasicuser = await prisma.basicUser.findUnique({
-            where:{
-                id:userId,
-                householdId:consumerId
+        var alreadyLinked=false;
+
+        await prisma.$transaction(async (tx) => {
+            const existing = await tx.basicUser.findUnique({
+                where: {
+                    id: userId,
+                    householdId: consumerId
+                }
+            });
+
+            if(existing){
+                alreadyLinked=true;
             }
-        })
 
-        if(newbasicuser){
-            return res.status(400).json({error:"User already linked with the household"});
-        }
-
-        await prisma.basicUser.create({
-            data:{
-                id:userId,
-                householdId:consumerId
+            if (!existing) {
+                await tx.basicUser.create({
+                    data: {
+                        id: userId,
+                        householdId: consumerId
+                    }
+                });
             }
-        })
+        });
 
-        return res.status(200).json({ success: result.message });
+        return res.status(200).json({ success: alreadyLinked ? "User already linked" : result.message });
     } catch (error) {
         console.error("OTP verification failed:", error);
         return res.status(500).json({ error: "Internal server error" });
