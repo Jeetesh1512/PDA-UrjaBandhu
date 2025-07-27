@@ -3,6 +3,6 @@ const router =  express.Router();
 const {authMiddleware,roleMiddleware} = require("../middlewares/auth");
 const {addOutage} = require("../controllers/outage");
 
-router.post("/add-outage",authMiddleware,roleMiddleware("LINEMAN"),addOutage);
+router.post("/add-outage",authMiddleware,roleMiddleware("ADMIN","LINEMAN"),addOutage);
 
 module.exports = router;

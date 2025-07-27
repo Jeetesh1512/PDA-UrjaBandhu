@@ -1,12 +1,13 @@
 generator client {
-  provider        = "prisma-client-js"
-  output          = "../generated/prisma"
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  directUrl  = env("DIRECT_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  directUrl         = env("DIRECT_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
@@ -26,6 +27,7 @@ model Admin {
   id           String        @id
   user         User          @relation(fields: [id], references: [id], onDelete: Cascade)
   appointments Appointment[]
+  Outage       Outage[]
 }
 
 model Lineman {
@@ -77,14 +79,14 @@ model Meter {
 }
 
 model Locality {
-  id          String                  @id @default(uuid())
-  location    String                  @unique
+  id          String                                     @id @default(uuid())
+  location    String                                     @unique
   boundary    Unsupported("geometry(MULTIPOLYGON,4326)")
   Appointment Appointment[]
   households  Household[]
   incidents   Incident[]
   outages     Outage[]
-  lineman     Lineman[]               @relation("LinemanToLocality")
+  lineman     Lineman[]                                  @relation("LinemanToLocality")
 
   @@index([location])
 }
@@ -112,6 +114,7 @@ model Incident {
   status        IncidentStatus   @default(REPORTED)
   localityId    String
   photoUrl      String?
+  updatedAt     DateTime         @updatedAt
   locality      Locality         @relation(fields: [localityId], references: [id], onDelete: Cascade)
   reporter      BasicUser        @relation(fields: [reporterId], references: [id])
   updates       IncidentUpdate[]
@@ -129,14 +132,22 @@ model Outage {
   startTime     DateTime
   endTime       DateTime
   localityId    String
-  linemanId     String
+  reporterType  ReporterType
+  linemanId     String?
+  adminId       String?
   notifications Notification[]
-  Lineman       Lineman        @relation(fields: [linemanId], references: [id])
+  Lineman       Lineman?       @relation(fields: [linemanId], references: [id])
+  Admin         Admin?         @relation(fields: [adminId], references: [id])
   locality      Locality       @relation(fields: [localityId], references: [id], onDelete: Cascade)
   reports       Report[]
 
   @@index([localityId, startTime])
   @@index([startTime, endTime])
+}
+
+enum ReporterType {
+  ADMIN
+  LINEMAN
 }
 
 model IncidentUpdate {

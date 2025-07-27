@@ -1,3 +1,8 @@
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- CreateEnum
+CREATE TYPE "ReporterType" AS ENUM ('ADMIN', 'LINEMAN');
+
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'LINEMAN', 'BASIC_USER');
 
@@ -114,7 +119,9 @@ CREATE TABLE "Outage" (
     "startTime" TIMESTAMP(3) NOT NULL,
     "endTime" TIMESTAMP(3) NOT NULL,
     "localityId" TEXT NOT NULL,
-    "linemanId" TEXT NOT NULL,
+    "reporterType" "ReporterType" NOT NULL,
+    "linemanId" TEXT,
+    "adminId" TEXT,
 
     CONSTRAINT "Outage_pkey" PRIMARY KEY ("id")
 );
@@ -314,7 +321,10 @@ ALTER TABLE "Incident" ADD CONSTRAINT "Incident_localityId_fkey" FOREIGN KEY ("l
 ALTER TABLE "Incident" ADD CONSTRAINT "Incident_reporterId_fkey" FOREIGN KEY ("reporterId") REFERENCES "BasicUser"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Outage" ADD CONSTRAINT "Outage_linemanId_fkey" FOREIGN KEY ("linemanId") REFERENCES "Lineman"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Outage" ADD CONSTRAINT "Outage_linemanId_fkey" FOREIGN KEY ("linemanId") REFERENCES "Lineman"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Outage" ADD CONSTRAINT "Outage_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "Admin"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Outage" ADD CONSTRAINT "Outage_localityId_fkey" FOREIGN KEY ("localityId") REFERENCES "Locality"("id") ON DELETE CASCADE ON UPDATE CASCADE;
