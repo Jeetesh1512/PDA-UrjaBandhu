@@ -30,13 +30,52 @@ const addIncident = async (req, res) => {
             }
         });
 
-        return res.status(201).json({success:true,incident});
+        return res.status(201).json({ success: true, incident });
     } catch (error) {
         console.error("Error adding incident: ", error);
         return res.status(500).json({ error: "Internal server error" });
     }
 }
 
+const updateIncidentStatus = async (req, res) => {
+    try {
+        const { incidentId } = req.params;
+        const { resolution, status } = req.body;
+        const linemanId = req.user.id;
+
+        if (!resolution || !incidentId || !status || !linemanId) {
+            return res.status(404).json({ error: "All fields are required" });
+        }
+
+        const validStatuses = ['REPORTED', 'IN_PROGRESS', 'RESOLVED'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ error: "Invalid incident status" });
+        }
+
+
+        const [updatedIncident, incidentUpdateDetails] = await prisma.$transaction([
+            prisma.incident.update({
+                where: { id: incidentId },
+                data: { status },
+            }),
+            prisma.incidentUpdate.create({
+                data: {
+                    resolution,
+                    linemanId,
+                    incidentId,
+                }
+            })
+        ]);
+
+        return res.status(200).json({ success: true, incidentUpdateDetails });
+
+    } catch (error) {
+        console.error("Error changing incident status", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
 module.exports = {
     addIncident,
+    updateIncidentStatus,
 }
