@@ -6,10 +6,15 @@ import { ArrowRight, Zap, Users, Shield } from 'lucide-react';
 export default async function Home() {
 
     const supabase = await createClient();
-    const { data, error } = await supabase.auth.getUser();
 
-    if (!error && data?.user) {
-        return redirect('/dashboard');
+    try {
+        const { data, error } = await supabase.auth.getUser();
+
+        if (!error && data?.user) {
+            return redirect('/dashboard');
+        }
+    } catch (error) {
+        console.error("No session found");
     }
 
     return (
