@@ -1,14 +1,17 @@
 "use client";
 
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import LocationMap from "@/components/LocationMap";
+import axios from "axios";
 
 export default function Dashboard() {
   const router = useRouter();
   const role = useSelector((state) => state.auth.role);
+  const [households, setHouseholds] = useState([]);
+  const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,6 +24,38 @@ export default function Dashboard() {
         return;
       }
 
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+
+      if (!token) {
+        router.push("/");
+        return;
+      }
+
+      try {
+        const resHouse = await axios.get(
+          `http://localhost:8080/api/household/power-status`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const resIncidents = await axios.get(
+          `http://localhost:8080/api/incident/active`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setIncidents(resIncidents?.data?.incidents);
+        setHouseholds(resHouse?.data?.households);
+      } catch (error) {
+        console.error("Failed to fetch power statuses", error);
+      }
+
       setLoading(false);
     };
 
@@ -29,21 +64,12 @@ export default function Dashboard() {
 
   if (loading) return <p>Loading...</p>;
 
-    const households = [
-    { lat: 32.8800, lng: 74.7800, powerStatus: 'ON' },
-    { lat: 28.62, lng: 77.22, powerStatus: 'OFF' },
-  ];
-
-  const incidents = [
-    { lat: 28.615, lng: 77.215, description: 'Transformer Failure' },
-    { lat: 28.625, lng: 77.225, description: 'Line Cut' },
-  ];
-
-  if (role === "ADMIN") return (
-    <>
-      <LocationMap households={households} incidents={incidents}/>
-    </>
-  )
+  if (role === "ADMIN")
+    return (
+      <>
+        <LocationMap incidents={incidents} />
+      </>
+    );
   if (role === "BASIC_USER") return <h1>Basic_user Dashboard</h1>;
   if (role === "LINEMAN") return <h1>Lineman Dashboard</h1>;
 

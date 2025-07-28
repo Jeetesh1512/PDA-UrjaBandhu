@@ -187,10 +187,31 @@ const verifyOtpForHouse = async (req, res) => {
     }
 };
 
+const powerStatus = async (req,res)=>{
+    try{
+        const households = await prisma.household.findMany({
+            select:{
+                id:true,
+                consumerName:true,
+                latitude:true,
+                longitude:true,
+                meter:{
+                    select:{
+                        powerStatus:true,
+                    }
+                }
+            }
+        }) 
 
+        return res.status(200).json({success:true,households});
+    }catch(error){
+        return res.status(500).json({error:"Internal Sever Errors"});
+    }
+}
 
 module.exports = {
     addHouse,
     verifyHouse,
-    verifyOtpForHouse
+    verifyOtpForHouse,
+    powerStatus,
 }

@@ -41,9 +41,9 @@ export default function LocationMap({ households = [], incidents = [] }) {
       households.forEach((house) => {
         const marker = new AdvancedMarkerElement({
           map,
-          position: { lat: house.lat, lng: house.lng },
-          content: createDot(house.powerStatus === "ON" ? "green" : "red"),
-          title: `Household-power: ${house.powerStatus}`,
+          position: { lat: house.latitude, lng: house.longitude },
+          content: createDot(house.meter.powerStatus === true ? "green" : "red"),
+          title: `Household-power: ${house.meter.powerStatus ===true ? "ON" : "OFF"}`,
         });
 
         markersRef.current.push(marker);
@@ -53,11 +53,11 @@ export default function LocationMap({ households = [], incidents = [] }) {
         const marker = new AdvancedMarkerElement({
           map,
           position: {
-            lat: incident.lat,
-            lng: incident.lng,
+            lat: incident.latitude,
+            lng: incident.longitude,
           },
-          content: createDot("orange"),
-          title: `Incident: ${incident.description}`,
+          content: createDot(incident.status === "IN_PROGRESS" ? "yellow" : "orange"),
+          title: `Incident: ${incident.description},\nstatus: ${incident.status}`,
         });
         markersRef.current.push(marker);
       });
