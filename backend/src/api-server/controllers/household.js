@@ -140,36 +140,53 @@ const verifyOtpForHouse = async (req, res) => {
             return res.status(400).json({ error: result.message });
         }
 
-        var alreadyLinked=false;
+        let alreadyLinked = false;
 
         await prisma.$transaction(async (tx) => {
-            const existing = await tx.basicUser.findUnique({
-                where: {
-                    id: userId,
-                    householdId: consumerId
+            const user = await tx.basicUser.findUnique({
+                where: { id: userId },
+                include: {
+                    households: {
+                        where: { id: consumerId }
+                    }
                 }
             });
 
-            if(existing){
-                alreadyLinked=true;
-            }
-
-            if (!existing) {
+            if (user) {
+                if (user.households.length > 0) {
+                    alreadyLinked = true;
+                } else {
+                    await tx.basicUser.update({
+                        where: { id: userId },
+                        data: {
+                            households: {
+                                connect: { id: consumerId }
+                            }
+                        }
+                    });
+                }
+            } else {
                 await tx.basicUser.create({
                     data: {
                         id: userId,
-                        householdId: consumerId
+                        households: {
+                            connect: { id: consumerId }
+                        }
                     }
                 });
             }
         });
 
-        return res.status(200).json({ success: alreadyLinked ? "User already linked" : result.message });
+        return res.status(200).json({
+            success: alreadyLinked ? "User already linked" : result.message
+        });
+
     } catch (error) {
         console.error("OTP verification failed:", error);
         return res.status(500).json({ error: "Internal server error" });
     }
 };
+
 
 
 module.exports = {

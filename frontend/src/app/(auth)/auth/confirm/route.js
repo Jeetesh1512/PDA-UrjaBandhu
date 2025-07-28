@@ -22,7 +22,7 @@ export async function GET(request) {
 
             if (token) {
                 try {
-                    await axios.post(`http://localhost:8081/api/user/signup`, {},
+                    await axios.post(`http://localhost:8081/auth/user/signup`, {},
                         {
                             headers: {
                                 Authorization: `Bearer ${token}`

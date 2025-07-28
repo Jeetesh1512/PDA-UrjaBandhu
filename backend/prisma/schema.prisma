@@ -40,13 +40,10 @@ model Lineman {
 }
 
 model BasicUser {
-  id          String     @id
-  householdId String
-  household   Household  @relation(fields: [householdId], references: [id], onDelete: Cascade)
-  user        User       @relation(fields: [id], references: [id], onDelete: Cascade)
+  id          String      @id
+  households  Household[] @relation("UserToHousehold")
+  user        User        @relation(fields: [id], references: [id], onDelete: Cascade)
   Incident    Incident[]
-
-  @@unique([id, householdId])
 }
 
 model Household {
@@ -57,7 +54,7 @@ model Household {
   longitude    Float
   primaryEmail String
   localityId   String
-  residents    BasicUser[]
+  residents    BasicUser[]   @relation("UserToHousehold")
   Bill         Bill[]
   locality     Locality      @relation(fields: [localityId], references: [id], onDelete: Cascade)
   meter        Meter[]

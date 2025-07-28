@@ -15,14 +15,18 @@ router.post("/signup", async (req, res) => {
     }
 
     try {
-        await prisma.user.create({
+        const newUser = await prisma.user.create({
             data: {
                 id: userInfo.user?.id,
                 email: userInfo.user?.email,
                 name: name,
             }
         });
-        return res.status(201).json({ success: true });
+
+        if (!user) {
+            return res.status(404).json({ error: "Couldn't create user" });
+        }
+        return res.status(201).json({ success: true, newUser });
     } catch (error) {
         return res.status(500).json({ error: "Internal Server Error" });
     }
@@ -50,6 +54,34 @@ router.post("/login", async (req, res) => {
         user: data.user,
     });
 });
+
+router.get("/me", async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (!user || error) {
+        return res.status(404).json({ error: "Invalid Token" });
+    }
+
+    const userId = user?.id;
+
+    const dbUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            basicUser:true,
+            admin:true,
+            lineman:true,
+        },
+    });
+
+    if (!dbUser) return res.status(404).json({ error: 'User not found' });
+
+    return res.status(200).json({ user: dbUser });
+})
 
 
 module.exports = router;

@@ -16,7 +16,7 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
-app.use("/api/user", authRoute);
+app.use("/auth/user", authRoute);
 
 app.listen(8081, () => {
     console.log("Server listening on port http://localhost:8081");
