@@ -3,7 +3,9 @@
 import { createClient } from "@/utils/supabase/client";
 import { useSelector } from "react-redux";
 
-export default async function Dashboard() {
+export default function Dashboard() {
+  
+  co
 
   const role = useSelector(state=>state.auth.role);
 

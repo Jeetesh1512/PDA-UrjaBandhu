@@ -48,7 +48,6 @@ export default function Login() {
       dispatch(
         authUser({
           user,
-          token,
           role:user.role,
         })
       );
