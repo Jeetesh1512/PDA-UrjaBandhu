@@ -1,20 +1,15 @@
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
-import { logout } from "../(auth)/logout/actions";
+'use client'
+
+import { createClient } from "@/utils/supabase/client";
+import { useSelector } from "react-redux";
 
 export default async function Dashboard() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
 
-  if (error || !data?.user) {
-    redirect("/login");
-  }
+  const role = useSelector(state=>state.auth.role);
 
-  return (
-    <>
-        <h1>In Dashboard</h1>
+  if(role==='ADMIN') return <h1>Admin Dashboard</h1>
+  if(role==='BASIC_USER') return <h1>Basic_user Dashboard</h1>
+  if(role==='LINEMAN')  return <h1>Lineman Dashboard</h1>
 
-        <button onClick={logout}>Logout</button>
-    </>
-  )
+  return <h1>Unauthorized</h1>
 }

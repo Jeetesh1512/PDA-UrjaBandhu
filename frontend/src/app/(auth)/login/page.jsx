@@ -1,17 +1,20 @@
 "use client";
 import { useState } from "react";
 import { login } from "./actions";
+import axios from "axios";
 import Link from "next/link";
+import {authUser} from '@/redux/slices/authslice'
 import { useRouter } from "next/navigation";
 import AuthSideBanner from "@/components/AuthSideBanner";
+import { useDispatch } from "react-redux";
 
 export default function Login() {
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
   });
-
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -21,6 +24,40 @@ export default function Login() {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const formData = new FormData();
+      formData.set("email", credentials.email);
+      formData.set("password", credentials.password);
+
+      const { token } = await login(formData);
+
+      const res = await axios.get(`http://localhost:8081/auth/user/me`,{
+        headers:{
+          Authorization: `Bearer ${token}`,
+        }
+      });
+
+
+      const user = res.data?.user
+
+      dispatch(
+        authUser({
+          user,
+          token,
+          role:user.role,
+        })
+      );
+
+      router.push('/dashboard');
+
+    } catch (error) {
+      console.error("Login Error", error);
+    }
   };
 
   return (
@@ -37,7 +74,7 @@ export default function Login() {
           <h1 className="text-2xl text-amber-50 font-semibold mb-6">
             Login here
           </h1>
-          <form className="space-y-4 p-6">
+          <form onSubmit={handleLogin} className="space-y-4 p-6">
             <input
               onChange={handleChange}
               type="email"
@@ -81,7 +118,7 @@ export default function Login() {
 
             <div className="flex m-4 items-center justify-center">
               <button
-                formAction={login}
+                type="submit"
                 className="bg-cyan-700 text-amber-50 font-extrabold p-1.5 hover:cursor-pointer hover:bg-blue-600 px-5 rounded-xl text-xl"
               >
                 Login
