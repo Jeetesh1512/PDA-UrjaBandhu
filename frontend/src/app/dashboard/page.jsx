@@ -1,17 +1,36 @@
-'use client'
+"use client";
 
+import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { useSelector } from "react-redux";
 
 export default function Dashboard() {
-  
-  co
+  const router = useRouter();
+  const role = useSelector((state) => state.auth.role);
+  const [loading, setLoading] = useState(true);
 
-  const role = useSelector(state=>state.auth.role);
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.getUser();
 
-  if(role==='ADMIN') return <h1>Admin Dashboard</h1>
-  if(role==='BASIC_USER') return <h1>Basic_user Dashboard</h1>
-  if(role==='LINEMAN')  return <h1>Lineman Dashboard</h1>
+      if (!data?.user || error) {
+        router.push("/");
+        return;
+      }
 
-  return <h1>Unauthorized</h1>
+      setLoading(false);
+    };
+
+    fetchUser();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+
+  if (role === "ADMIN") return <h1>Admin Dashboard</h1>;
+  if (role === "BASIC_USER") return <h1>Basic_user Dashboard</h1>;
+  if (role === "LINEMAN") return <h1>Lineman Dashboard</h1>;
+
+  return <h1>Unauthorized</h1>;
 }
