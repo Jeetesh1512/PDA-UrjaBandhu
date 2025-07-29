@@ -40,10 +40,10 @@ model Lineman {
 }
 
 model BasicUser {
-  id          String      @id
-  households  Household[] @relation("UserToHousehold")
-  user        User        @relation(fields: [id], references: [id], onDelete: Cascade)
-  Incident    Incident[]
+  id         String      @id
+  households Household[] @relation("UserToHousehold")
+  user       User        @relation(fields: [id], references: [id], onDelete: Cascade)
+  Incident   Incident[]
 }
 
 model Household {
@@ -108,6 +108,8 @@ model Incident {
   latitude      Float
   longitude     Float
   description   String
+  category      String
+  priority      String
   status        IncidentStatus   @default(REPORTED)
   localityId    String
   photoUrl      String?

@@ -1,4 +1,5 @@
 const { uploadToCloudinary } = require("../utils/uploadToCloudinary");
+const { categorizeAndPrioritizeIncident } = require("../utils/prioritizeIncidents")
 const { PrismaClient } = require("../../../generated/prisma");
 const prisma = new PrismaClient();
 
@@ -17,6 +18,8 @@ const addIncident = async (req, res) => {
             return res.status(400).json("Image is required");
         }
 
+        const { category, priority } = await categorizeAndPrioritizeIncident(description);
+
         const uploadRes = await uploadToCloudinary(file.buffer);
 
         const incident = await prisma.incident.create({
@@ -25,6 +28,8 @@ const addIncident = async (req, res) => {
                 longitude: parseFloat(longitude),
                 description,
                 localityId,
+                category,
+                priority,
                 reporterId,
                 photoUrl: uploadRes.secure_url,
             }
@@ -75,31 +80,31 @@ const updateIncidentStatus = async (req, res) => {
     }
 };
 
-const getActiveIncidents = async (req,res) => {
+const getActiveIncidents = async (req, res) => {
     try {
         const incidents = await prisma.incident.findMany({
-            where:{
-                status:{
-                    not:"RESOLVED"
+            where: {
+                status: {
+                    not: "RESOLVED"
                 }
             },
-            select:{
-                id:true,
-                latitude:true,
-                longitude:true,
-                status:true,
-                photoUrl:true,
-                locality:true,
-                updatedAt:true,
-                description:true,
+            select: {
+                id: true,
+                latitude: true,
+                longitude: true,
+                status: true,
+                photoUrl: true,
+                locality: true,
+                updatedAt: true,
+                description: true,
             }
         })
 
-        if(!incidents){
+        if (!incidents) {
             return res.status(404).json("Error finding incidents");
         }
 
-        return res.status(200).json({success:true, incidents});
+        return res.status(200).json({ success: true, incidents });
     } catch (error) {
         return res.status(500).json("Internal server error");
     }
