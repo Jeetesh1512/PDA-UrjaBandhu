@@ -7,6 +7,7 @@ import {authUser} from '@/redux/slices/authslice'
 import { useRouter } from "next/navigation";
 import AuthSideBanner from "@/components/AuthSideBanner";
 import { useDispatch } from "react-redux";
+import Image from "next/image";
 
 export default function Login() {
   const [credentials, setCredentials] = useState({
@@ -52,7 +53,7 @@ export default function Login() {
         })
       );
 
-      router.push('/dashboard');
+      router.push(`/${user.role.toLowerCase()}/dashboard`);
 
     } catch (error) {
       console.error("Login Error", error);
@@ -66,7 +67,7 @@ export default function Login() {
           <h1 className="text-3xl text-amber-50 font-mono font-extrabold">
             PDA Ltd.
           </h1>
-          <img src="/logo.png" className="w-10 h-10" alt="icon" />
+          <Image src="/logo.png" className="h-10 w-10" width={100} height={100} alt="icon" />
         </div>
 
         <div>
@@ -101,9 +102,9 @@ export default function Login() {
                 onClick={() => setShowPassword((prev) => !prev)}
               >
                 {showPassword ? (
-                  <img className="h-7" src="/eye.png" alt="hide" />
+                  <Image width={100} height={100} className="h-7 w-7" src="/eye.png" alt="hide" />
                 ) : (
-                  <img className="h-7" src="/close.png" alt="show" />
+                  <Image width={100} height={100} className="h-7 w-7" src="/close.png" alt="show" />
                 )}
               </span>
             </div>

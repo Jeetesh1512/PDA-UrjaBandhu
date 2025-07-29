@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import AuthSideBanner from "@/components/AuthSideBanner";
+import Image from "next/image";
 
 export default function UpdatePassword() {
   const [password, setPassword] = useState("");
@@ -36,7 +37,7 @@ export default function UpdatePassword() {
       <div className="w-full lg:w-1/3 bg-neutral-900 p-10 flex flex-col justify-between">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl text-amber-50 font-mono font-extrabold">PDA Ltd.</h1>
-          <img src="/logo.png" className="w-10 h-10" alt="icon" />
+          <Image src="/logo.png" className="w-10 h-10" alt="icon" />
         </div>
 
         <form onSubmit={handleUpdate} className="space-y-4 p-6">

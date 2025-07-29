@@ -4,6 +4,7 @@ import Link from "next/link";
 import AuthSideBanner from "@/components/AuthSideBanner";
 import { signup } from "./actions";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function SignUp() {
   const [credentials, setCredentials] = useState({
@@ -55,7 +56,7 @@ export default function SignUp() {
             <h1 className="text-3xl text-amber-50 font-mono font-extrabold">
               PDA Ltd.
             </h1>
-            <img src="/logo.png" className="w-10 h-10" alt="icon" />
+            <Image src="/logo.png" className="w-10 h-10" alt="icon" />
           </div>
           <div>
             <h1 className="text-2xl text-amber-50 font-semibold mb-6">
@@ -101,9 +102,9 @@ export default function SignUp() {
                   onClick={() => setShowPassword((prev) => !prev)}
                 >
                   {showPassword ? (
-                    <img className="h-7" src="/eye.png" alt="hidden" />
+                    <Image className="h-7" src="/eye.png" alt="hidden" />
                   ) : (
-                    <img className="h-7" src="/close.png" alt="visible" />
+                    <Image className="h-7" src="/close.png" alt="visible" />
                   )}
                 </span>
               </div>

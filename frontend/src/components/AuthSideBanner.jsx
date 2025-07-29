@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 export default function AuthSideBanner() {
   return (
     <div className="hidden lg:flex w-2/3 bg-[url(/home-bg.jpg)] bg-cover bg-center bg-no-repeat text-white p-10 items-center justify-center">
@@ -10,9 +12,11 @@ export default function AuthSideBanner() {
         </p>
 
         <div className="flex flex-row gap-6">
-          <img
+          <Image
             src="/owner-profile.jpeg"
             alt="profile"
+            height={100}
+            width={100}
             className="h-18 w-15 rounded-4xl"
           />
           <div className="flex justify-center flex-col">

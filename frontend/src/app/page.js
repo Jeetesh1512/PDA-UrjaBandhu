@@ -2,19 +2,30 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Zap, Users, Shield } from 'lucide-react';
+import axios from "axios";
+import Image from "next/image";
 
 export default async function Home() {
 
     const supabase = await createClient();
 
-    try {
-        const { data, error } = await supabase.auth.getUser();
+    const { data, error } = await supabase.auth.getSession();
 
-        if (!error && data?.user) {
-            return redirect('/dashboard');
+    if (!error) {
+        const token = data?.session?.access_token;
+        if (token) {
+            const res = await axios.get(`http://localhost:8081/auth/user/me`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const role = res?.data?.user?.role;
+
+            if (role) {
+                redirect(`${role.toLowerCase()}/dashboard`)
+            }
         }
-    } catch (error) {
-        console.error("No session found");
     }
 
     return (
@@ -24,7 +35,7 @@ export default async function Home() {
                     <div className="mb-8 flex justify-center">
                         <div className="relative">
                             <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl">
-                                <img alt="logo" src="/logo.png" />
+                                <Image alt="logo" src="/logo.png" width={100} height={100} />
                             </div>
                             <div className="absolute -inset-1 bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl blur opacity-30"></div>
                         </div>
@@ -90,7 +101,7 @@ export default async function Home() {
                     <p className="text-gray-400 leading-relaxed text-lg">
                         PDA Ltd. bridges the gap between traditional power infrastructure and modern community needs.
                         Our platform enables local communities to take control of their energy future through smart
-                        distribution networks, transparent billing, and collaborative governance. Whether you're managing
+                        distribution networks, transparent billing, and collaborative governance. Whether you&apos;re managing
                         a residential complex, industrial zone, or rural community, our technology scales to meet your
                         unique requirements while maintaining the highest standards of reliability and security.
                     </p>
