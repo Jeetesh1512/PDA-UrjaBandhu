@@ -125,6 +125,12 @@ export default function IncidentForm() {
     }
   };
 
+  useEffect(() => {
+    if (localities.length > 0 && !selectedLocality) {
+      setSelectedLocality(localities[0]);
+    }
+  }, [localities]);
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
       <div className="max-w-4xl mx-auto">
@@ -165,6 +171,7 @@ export default function IncidentForm() {
                 {/* Locality ID */}
                 <div>
                   <select
+                    value={selectedLocality?.location || ""}
                     onChange={(e) => {
                       const loc = localities.find(
                         (l) => l.location === e.target.value
