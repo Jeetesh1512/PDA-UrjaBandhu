@@ -1,3 +1,5 @@
+import LocationMap from "@/components/LocationMap";
+
 export default function Dashboard() {
-  return <h1>Basic User Dashboard</h1>
+  return <LocationMap/>
 }

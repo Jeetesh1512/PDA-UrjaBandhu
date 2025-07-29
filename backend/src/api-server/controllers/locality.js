@@ -41,7 +41,7 @@ const addLocalities = async (req, res) => {
 };
 
 const findLocality = async (req, res) => {
-    const {latitude, longitude} = req.body;
+    const { latitude, longitude } = req.body;
 
     try {
         const result = await prisma.$queryRaw`
@@ -59,11 +59,53 @@ const findLocality = async (req, res) => {
             res.status(400).json("No matching location found for the coordinates.");
         }
     } catch (error) {
-        res.status(500).json({error:"Error during location lookup:"});
+        res.status(500).json({ error: "Error during location lookup:" });
+    }
+}
+
+const getLocalitiesNameAndId = async (req, res) => {
+    try {
+        const localities = await prisma.locality.findMany({
+            select: { id: true, location: true },
+        });
+        res.status(200).json({ localities });
+    } catch (error) {
+        return res.status(500).json("Internal Server Error");
+    }
+}
+
+const getBoundary = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const result = await prisma.$queryRawUnsafe(`
+            SELECT ST_AsGeoJSON(boundary) as geojson
+            FROM "Locality"
+            WHERE id = '${id}'
+        `);
+
+        const geometry = JSON.parse(result[0].geojson);
+
+        const geojson = {
+            type: "FeatureCollection",
+            features: [
+                {
+                    type: "Feature",
+                    geometry,
+                    properties: {}
+                }
+            ]
+        };
+
+        return res.status(200).json({ success: true, geojson });
+    } catch (error) {
+        return res.status(500).json("Internal Server Error");
     }
 }
 
 module.exports = {
     addLocalities,
-    findLocality
+    findLocality,
+    getLocalitiesNameAndId,
+    getBoundary,
 };

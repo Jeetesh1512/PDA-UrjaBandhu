@@ -23,8 +23,9 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/incidents", label: "Incidents" },
+    { href: "/basic_user/dashboard", label: "Dashboard" },
+    { href: "/basic_user/incidents", label: "Incidents" },
+    { href: "/basic_user/addIncident", label: "Add Incident" },
     { href: "/profile", label: "Profile" },
   ];
 
@@ -66,7 +67,9 @@ export default function Navbar() {
               </div>
               <span className="text-xl font-semibold text-white">
                 <span>PDA </span>
-                <span className="text-2xl samarkan text-white">ऊर्जा Bandhu</span>
+                <span className="text-2xl samarkan text-white">
+                  ऊर्जा Bandhu
+                </span>
               </span>
             </Link>
           </div>
@@ -90,13 +93,6 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             <div className="relative">
               <div className="flex flex-row item space-x-4">
-                <button
-                  onClick={() => setIsAddIncidentOpen(true)}
-                  className="px-4 py-2 text-sm rounded-md font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                >
-                  Add Incident
-                </button>
-
                 <button
                   onClick={toggleUserDropdown}
                   className="flex items-center space-x-2 p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
