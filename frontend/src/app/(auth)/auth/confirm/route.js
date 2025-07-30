@@ -1,7 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import axios from 'axios'
-import { useDispatch } from 'react-redux'
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url)
