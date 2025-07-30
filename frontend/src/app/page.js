@@ -9,21 +9,25 @@ export default async function Home() {
 
     const supabase = await createClient();
 
-    const { data, error } = await supabase.auth.getSession();
+    const { data: userData, error: userError } = await supabase.auth.getUser();
 
-    if (!error) {
-        const token = data?.session?.access_token;
-        if (token) {
-            const res = await axios.get(`http://localhost:8081/auth/user/me`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+    if (!userError && userData?.user) {
+        const { data, error } = await supabase.auth.getSession();
 
-            const role = res?.data?.user?.role;
+        if (!error) {
+            const token = data?.session?.access_token;
+            if (token) {
+                const res = await axios.get(`http://localhost:8081/auth/user/me`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
 
-            if (role) {
-                redirect(`${role.toLowerCase()}/dashboard`)
+                const role = res?.data?.user?.role;
+
+                if (role) {
+                    redirect(`${role.toLowerCase()}/dashboard`)
+                }
             }
         }
     }

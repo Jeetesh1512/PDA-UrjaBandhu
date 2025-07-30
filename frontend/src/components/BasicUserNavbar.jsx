@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, User, LogOut, TriangleAlert, Bell, House } from "lucide-react";
 import Image from "next/image";
 import AddIncidentForm from "./AddIncidentForm";
+import { useSelector } from "react-redux";
+import { logout } from "@/app/(auth)/logout/actions";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -26,7 +28,6 @@ export default function Navbar() {
     { href: "/basic_user/dashboard", label: "Dashboard" },
     { href: "/basic_user/incidents", label: "Incidents" },
     { href: "/basic_user/addIncident", label: "Report Incident" },
-    { href: "/profile", label: "Profile" },
   ];
 
   const isActiveLink = (href) => {
@@ -45,10 +46,8 @@ export default function Navbar() {
     };
   }, [isAddIncidentOpen]);
 
-  const handleLogout = () => {
-    console.log("Logout clicked");
-    setIsUserDropdownOpen(false);
-  };
+  const userName = useSelector(state => state.auth.user.name);
+  console.log(userName)
 
   return (
     <nav className="bg-gray-900 shadow-sm border-b border-gray-700">
@@ -101,20 +100,31 @@ export default function Navbar() {
                     <User className="w-4 h-4" />
                   </div>
                   <span className="hidden sm:block text-sm font-medium">
-                    User
+                    {userName}
                   </span>
                 </button>
               </div>
 
               {isUserDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
+                  <button className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <Bell className="w-4 h-4" />
+                    <span>Notifications</span>
                   </button>
+                  <button className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <House className="w-4 h-4" />
+                    <span>My Houses</span>
+                  </button>
+                  <button className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <TriangleAlert className="w-4 h-4" />
+                    <span>My Incidents</span>
+                  </button>
+                  <form action={logout} method="post">
+                    <button className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      <LogOut className="w-4 h-4" />
+                      <span>Logout</span>
+                    </button>
+                  </form>
                 </div>
               )}
             </div>
@@ -183,10 +193,7 @@ export default function Navbar() {
             </div>
 
             <div className="mt-6 flex justify-end space-x-2">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white"
-              >
+              <button className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white">
                 Cancel
               </button>
               <button
