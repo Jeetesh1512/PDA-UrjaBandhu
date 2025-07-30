@@ -18,6 +18,7 @@ export default function IncidentForm() {
   const [filePreview, setFilePreview] = useState(null);
   const [goToMyLocation, setGoToMyLocation] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [clearMapMarker, setClearMapMarker] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -42,10 +43,7 @@ export default function IncidentForm() {
             },
           }
         );
-
-        console.log(res.data.localities);
         setLocalities(res.data.localities);
-        console.log(localities);
       }
     }
 
@@ -94,24 +92,34 @@ export default function IncidentForm() {
       submitData.append("latitude", latLng.lat);
       submitData.append("longitude", latLng.lng);
       submitData.append("description", formData.description);
-      submitData.append("localityId", formData.localityId);
-      submitData.append("file", selectedFile);
+      submitData.append("localityId", selectedLocality.id); 
+      submitData.append("photo", selectedFile); 
 
-      // Replace with your actual API endpoint
-      console.log("Submitting incident data:", {
-        latitude: latLng.lat,
-        longitude: latLng.lng,
-        description: formData.description,
-        localityId: formData.localityId,
-        file: selectedFile.name,
-      });
+      const supabase = await createClient();
+      const { data, error } = await supabase.auth.getSession();
+      const token = data?.session?.access_token;
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (!token) {
+        alert("You must be logged in to report an incident.");
+        return;
+      }
 
-      alert("Incident reported successfully!");
+      const response = await axios.post(
+        "http://localhost:8080/api/incident/add-incident",
+        submitData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      // Reset form
+      if (response) {
+        alert("Incident reported successfully!");
+        if (clearMapMarker) clearMapMarker();
+      }
+
       setFormData({ description: "", localityId: "" });
       setLatLng(null);
       setAddress("");
@@ -150,9 +158,7 @@ export default function IncidentForm() {
 
           <div className="p-6 space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Left Column - Form Fields */}
               <div className="space-y-6">
-                {/* Description */}
                 <div>
                   <label className="block text-sm font-medium text-gray-200 mb-2">
                     Incident Description *
@@ -242,6 +248,7 @@ export default function IncidentForm() {
                     setLatLng={setLatLng}
                     setAddress={setAddress}
                     setGoToMyLocation={setGoToMyLocation}
+                    setClearMapMarker={setClearMapMarker}
                     selectedLocality={selectedLocality}
                   />
                 </div>
@@ -253,8 +260,8 @@ export default function IncidentForm() {
                   </p>
                   {latLng && (
                     <p className="text-xs text-gray-400 mt-1">
-                      Coordinates: {latLng.lat.toFixed(6)},{" "}
-                      {latLng.lng.toFixed(6)}
+                      Coordinates: {latLng.lat.toFixed(8)},{" "}
+                      {latLng.lng.toFixed(8)}
                     </p>
                   )}
                 </div>
@@ -271,10 +278,18 @@ export default function IncidentForm() {
               </div>
             </div>
 
+            {isSubmitting && (
+              <div className="text-sm text-blue-400 flex flex-row italic text-center mb-4">
+                <Loader className="animate-spin mr-2" size={16} />
+                <p>Analyzing your report using AI to assist the lineman...</p>
+              </div>
+            )}
+
             {/* Submit Button */}
             <div className="flex justify-end pt-6 border-t border-gray-700">
               <button
                 type="submit"
+                onClick={handleSubmit}
                 disabled={isSubmitting}
                 className="flex items-center px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
               >

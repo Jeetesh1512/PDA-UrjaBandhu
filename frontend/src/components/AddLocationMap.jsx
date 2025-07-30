@@ -9,6 +9,7 @@ export default function AddLocationMap({
   setLatLng,
   setAddress,
   setGoToMyLocation,
+  setClearMapMarker,
   selectedLocality,
 }) {
   const mapRef = useRef(null);
@@ -35,11 +36,10 @@ export default function AddLocationMap({
     const boundaryLayer = new google.maps.Data();
     boundaryLayer.addGeoJson(geojson);
     boundaryLayer.setStyle({
-      fillColor: "#00BCD4",
       strokeColor: "#0097A7",
       strokeWeight: 2,
       fillOpacity: 0.2,
-      clickable:false,
+      clickable: false,
     });
     boundaryLayer.setMap(map);
 
@@ -68,7 +68,7 @@ export default function AddLocationMap({
 
       const geocoder = new google.maps.Geocoder();
 
-      const defaultLocation = { lat: 32.739350, lng: 74.874487 }; // Jammu
+      const defaultLocation = { lat: 32.73935, lng: 74.874487 }; // Jammu
 
       const map = new Map(mapRef.current, {
         center: defaultLocation,
@@ -200,6 +200,15 @@ export default function AddLocationMap({
       });
     };
 
+    setClearMapMarker(() => () => {
+      if (markerRef.current) {
+        markerRef.current.setMap(null);
+        markerRef.current = null;
+      }
+      setLatLng(null);
+      setAddress("");
+    });
+
     initializeMap().catch((err) => console.error("Map load error:", err));
   }, [setLatLng, setAddress, setGoToMyLocation]);
 
@@ -224,6 +233,14 @@ export default function AddLocationMap({
           );
 
           drawBoundary(mapInstanceRef.current, res?.data?.geojson);
+
+          if (markerRef.current) {
+            markerRef.current.setMap(null);
+            markerRef.current = null;
+          }
+
+          setLatLng(null);
+          setAddress("");
         } catch (error) {
           console.error("Failed to fetch boundary for locality:", error);
         }

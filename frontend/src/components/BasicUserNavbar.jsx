@@ -25,7 +25,7 @@ export default function Navbar() {
   const navLinks = [
     { href: "/basic_user/dashboard", label: "Dashboard" },
     { href: "/basic_user/incidents", label: "Incidents" },
-    { href: "/basic_user/addIncident", label: "Add Incident" },
+    { href: "/basic_user/addIncident", label: "Report Incident" },
     { href: "/profile", label: "Profile" },
   ];
 
