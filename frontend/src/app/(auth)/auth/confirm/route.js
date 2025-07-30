@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import axios from 'axios'
+import { useDispatch } from 'react-redux'
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url)
@@ -21,20 +22,20 @@ export async function GET(request) {
             const token = data.session.access_token;
 
             if (token) {
+                console.log(token);
                 try {
-                    await axios.post(`http://localhost:8081/auth/user/signup`, {},
-                        {
-                            headers: {
-                                Authorization: `Bearer ${token}`
-                            }
-                        }
-                    );
+                    const {data} = await axios.post(`http://localhost:8081/auth/user/signup`, {}, {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+                    const {newUser} = data;
+                    console.log(newUser)
                 } catch (error) {
                     console.error("Error Signing Up", error);
                 }
             }
-
-            return redirect(next)
+            return redirect('/confirm-landing');
         }
     }
     return redirect('/error')

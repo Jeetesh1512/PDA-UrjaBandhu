@@ -48,8 +48,6 @@ export default function IncidentForm() {
     }
 
     getSession();
-
-    console.log(localities);
   }, []);
 
   const handleFileChange = (e) => {

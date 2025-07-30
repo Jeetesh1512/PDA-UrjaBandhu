@@ -15,10 +15,16 @@ export async function signup(formData) {
     },
   }
 
-  const { error } = await supabase.auth.signUp(signupData)
+  const { data,error } = await supabase.auth.signUp(signupData)
+  console.log(data);
+  console.log(error);
 
   if (error) {
     return { error: error.message }
+  }
+
+  if(!data?.session){
+    return {error:"User already exists"}
   }
 
   return { success: true }

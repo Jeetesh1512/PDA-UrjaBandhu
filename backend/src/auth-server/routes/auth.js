@@ -7,10 +7,10 @@ const { supabase } = require("../utils/supabase-server");
 router.post("/signup", async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
 
-    const { data: userInfo, error } = await supabase.auth.getUser(token);
+    const { data: userInfo, error:userError } = await supabase.auth.getUser(token);
     const name = userInfo.user?.user_metadata?.name;
 
-    if (error) {
+    if (userError) {
         return res.status(401).json({ error: "User not authorized" });
     }
 
@@ -23,10 +23,10 @@ router.post("/signup", async (req, res) => {
             }
         });
 
-        if (!user) {
+        if (!newUser) {
             return res.status(404).json({ error: "Couldn't create user" });
         }
-        return res.status(201).json({ success: true, newUser });
+        return res.status(200).json({ success: true, newUser });
     } catch (error) {
         return res.status(500).json({ error: "Internal Server Error" });
     }

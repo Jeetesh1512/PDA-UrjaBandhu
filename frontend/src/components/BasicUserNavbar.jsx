@@ -47,7 +47,6 @@ export default function Navbar() {
   }, [isAddIncidentOpen]);
 
   const userName = useSelector(state => state.auth.user.name);
-  console.log(userName)
 
   return (
     <nav className="bg-gray-900 shadow-sm border-b border-gray-700">
@@ -119,7 +118,7 @@ export default function Navbar() {
                     <TriangleAlert className="w-4 h-4" />
                     <span>My Incidents</span>
                   </button>
-                  <form action={logout} method="post">
+                  <form action={logout}>
                     <button className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                       <LogOut className="w-4 h-4" />
                       <span>Logout</span>
