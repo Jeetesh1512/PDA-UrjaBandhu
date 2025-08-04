@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 const addIncident = async (req, res) => {
 
     try {
-        const { latitude, longitude, description, localityId } = req.body;
+        const { latitude, longitude, description, localityId, location } = req.body;
         const reporterId = req.user.id;
 
-        if (!latitude || !longitude || !description || !localityId) {
+        if (!latitude || !longitude || !description || !localityId || !location) {
             return res.status(400).json({ error: "All fields are required" });
         }
 
@@ -30,6 +30,7 @@ const addIncident = async (req, res) => {
                 localityId,
                 category,
                 priority,
+                location,
                 reporterId,
                 photoUrl: uploadRes.secure_url,
             }
@@ -82,36 +83,95 @@ const updateIncidentStatus = async (req, res) => {
 
 const getActiveIncidents = async (req, res) => {
     try {
-        const incidents = await prisma.incident.findMany({
-            where: {
-                status: {
-                    not: "RESOLVED"
+        const [liveIncidents, countsByPriorityRaw, countsByStatusRaw] = await Promise.all([
+            prisma.incident.findMany({
+                where: { status: { not: 'RESOLVED' } },
+                orderBy: { updatedAt: 'desc' },
+                select: {
+                    id: true,
+                    description: true,
+                    location: true,
+                    latitude: true,
+                    longitude: true,
+                    category: true,
+                    priority: true,
+                    status: true,
+                    updatedAt: true,
+                    photoUrl: true,
+                    locality: {
+                        select: {
+                            id: true,
+                            location: true
+                        }
+                    },
                 }
-            },
-            select: {
-                id: true,
-                latitude: true,
-                longitude: true,
-                status: true,
-                photoUrl: true,
-                locality: true,
-                updatedAt: true,
-                description: true,
+            }),
+            prisma.incident.groupBy({
+                by: ['priority'],
+                where: { status: { not: 'RESOLVED' } },
+                _count: true
+            }),
+            prisma.incident.groupBy({
+                by: ['status'],
+                where: { status: { not: 'RESOLVED' } },
+                _count: true
+            })
+        ]);
+
+        const countsByPriority = Object.fromEntries(
+            countsByPriorityRaw.map(({ priority, _count }) => [priority, _count])
+        );
+
+        const countsByStatus = Object.fromEntries(
+            countsByStatusRaw.map(({ status, _count }) => [status, _count])
+        );
+
+        res.status(200).json({
+            success: true,
+            liveIncidents,
+            counts: {
+                byPriority: countsByPriority,
+                byStatus: countsByStatus,
+                total: liveIncidents.length
             }
-        })
-
-        if (!incidents) {
-            return res.status(404).json("Error finding incidents");
-        }
-
-        return res.status(200).json({ success: true, incidents });
+        });
     } catch (error) {
-        return res.status(500).json("Internal server error");
+        console.error("Error fetching active incidents:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
-}
+};
+
+
+const getIncidentRecords = async (req, res) => {
+    try {
+        const [totalCount, priorityCounts] = await prisma.$transaction([
+            prisma.incident.count(),
+            prisma.incident.groupBy({
+                by: ['priority'],
+                _count: {
+                    priority: true
+                }
+            })
+        ]);
+
+        const formattedCounts = {};
+        priorityCounts.forEach((item) => {
+            formattedCounts[item.priority] = item._count.priority;
+        });
+
+        return res.json({
+            totalIncidents: totalCount,
+            priorityBreakdown: formattedCounts
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch incident records' });
+    }
+};
 
 module.exports = {
     addIncident,
     updateIncidentStatus,
-    getActiveIncidents
+    getActiveIncidents,
+    getIncidentRecords,
 }

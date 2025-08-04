@@ -90,8 +90,9 @@ export default function IncidentForm() {
       submitData.append("latitude", latLng.lat);
       submitData.append("longitude", latLng.lng);
       submitData.append("description", formData.description);
-      submitData.append("localityId", selectedLocality.id); 
-      submitData.append("photo", selectedFile); 
+      submitData.append("localityId", selectedLocality.id);
+      submitData.append("photo", selectedFile);
+      submitData.append("location", address);
 
       const supabase = await createClient();
       const { data, error } = await supabase.auth.getSession();

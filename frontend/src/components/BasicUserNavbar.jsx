@@ -66,7 +66,7 @@ export default function Navbar() {
               <span className="text-xl font-semibold text-white">
                 <span>PDA </span>
                 <span className="text-2xl samarkan text-white">
-                  ऊर्जा Bandhu
+                  urjabandhu
                 </span>
               </span>
             </Link>

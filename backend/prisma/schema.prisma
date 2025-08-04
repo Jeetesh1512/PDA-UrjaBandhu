@@ -105,6 +105,7 @@ model Appointment {
 model Incident {
   id            String           @id @default(uuid())
   reporterId    String
+  location      String
   latitude      Float
   longitude     Float
   description   String
