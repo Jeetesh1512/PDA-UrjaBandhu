@@ -7,7 +7,7 @@ const { supabase } = require("../utils/supabase-server");
 router.post("/signup", async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
 
-    const { data: userInfo, error:userError } = await supabase.auth.getUser(token);
+    const { data: userInfo, error: userError } = await supabase.auth.getUser(token);
     const name = userInfo.user?.user_metadata?.name;
 
     if (userError) {
@@ -72,9 +72,19 @@ router.get("/me", async (req, res) => {
             email: true,
             name: true,
             role: true,
-            basicUser:true,
-            admin:true,
-            lineman:true,
+            basicUser: {
+                select: {
+                    households: {
+                        select: {
+                            id: true,
+                            consumerName: true,
+                            localityId: true,
+                        },
+                    },
+                },
+            },
+            admin: true,
+            lineman: true,
         },
     });
 

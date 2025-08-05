@@ -141,6 +141,28 @@ const getActiveIncidents = async (req, res) => {
     }
 };
 
+const getActiveIncidentLocations = async (req, res) => {
+    try {
+        const {localityId} = req.params;
+        const incidents = await prisma.incident.findMany({
+            where: {
+                status: { not: "RESOLVED" },
+                localityId,
+            },
+            select: {
+                latitude: true,
+                longitude: true,
+                status:true,
+                description:true,
+            }
+        })
+
+        res.status(201).json({ incidents });
+    } catch (error) {
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
 
 const getIncidentRecords = async (req, res) => {
     try {
@@ -174,4 +196,5 @@ module.exports = {
     updateIncidentStatus,
     getActiveIncidents,
     getIncidentRecords,
+    getActiveIncidentLocations,
 }
