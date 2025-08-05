@@ -3,7 +3,7 @@ import { useState } from "react";
 import { login } from "./actions";
 import axios from "axios";
 import Link from "next/link";
-import {authUser} from '@/redux/slices/authslice'
+import { authUser } from "@/redux/slices/authslice";
 import { useRouter } from "next/navigation";
 import AuthSideBanner from "@/components/AuthSideBanner";
 import { useDispatch } from "react-redux";
@@ -37,24 +37,26 @@ export default function Login() {
 
       const { token } = await login(formData);
 
-      const res = await axios.get(`http://localhost:8081/auth/user/me`,{
-        headers:{
+      const res = await axios.get(`http://localhost:8081/auth/user/me`, {
+        headers: {
           Authorization: `Bearer ${token}`,
-        }
+        },
       });
 
-
-      const user = res.data?.user
+      const user = res.data?.user;
 
       dispatch(
         authUser({
           user,
-          role:user.role,
+          role: user.role,
         })
       );
 
-      router.push(`/${user.role.toLowerCase()}/dashboard`);
-
+      if (!user.basicUser) {
+        router.push("/link-household");
+      } else {
+        router.push(`/${user.role.toLowerCase()}/dashboard`);
+      }
     } catch (error) {
       console.error("Login Error", error);
     }
@@ -67,7 +69,13 @@ export default function Login() {
           <h1 className="text-3xl text-amber-50 font-mono font-extrabold">
             PDA Ltd.
           </h1>
-          <Image src="/logo.png" className="h-10 w-10" width={100} height={100} alt="icon" />
+          <Image
+            src="/logo.png"
+            className="h-10 w-10"
+            width={100}
+            height={100}
+            alt="icon"
+          />
         </div>
 
         <div>
@@ -102,9 +110,21 @@ export default function Login() {
                 onClick={() => setShowPassword((prev) => !prev)}
               >
                 {showPassword ? (
-                  <Image width={100} height={100} className="h-7 w-7" src="/eye.png" alt="hide" />
+                  <Image
+                    width={100}
+                    height={100}
+                    className="h-7 w-7"
+                    src="/eye.png"
+                    alt="hide"
+                  />
                 ) : (
-                  <Image width={100} height={100} className="h-7 w-7" src="/close.png" alt="show" />
+                  <Image
+                    width={100}
+                    height={100}
+                    className="h-7 w-7"
+                    src="/close.png"
+                    alt="show"
+                  />
                 )}
               </span>
             </div>

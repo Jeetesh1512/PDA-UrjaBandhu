@@ -25,8 +25,8 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: "/basic_user/dashboard", label: "Dashboard" },
-    { href: "/basic_user/incidents", label: "Incidents" },
+    { href: "/basic_user/dashboard", label: "Home" },
+    { href: "/basic_user/incidents", label: "Live Incidents" },
     { href: "/basic_user/addIncident", label: "Report Incident" },
   ];
 
@@ -49,7 +49,7 @@ export default function Navbar() {
   const userName = useSelector(state => state.auth.user.name);
 
   return (
-    <nav className="bg-gray-900 shadow-sm border-b border-gray-700">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-gray-900 shadow-sm border-b border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
@@ -77,7 +77,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 py-2 rounded-md text-lg font-medium transition-colors ${
                   isActiveLink(link.href)
                     ? " text-blue-400 bg-blue-900/20"
                     : " text-gray-300  hover:text-blue-400 hover:bg-gray-800"
