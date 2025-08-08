@@ -1,13 +1,9 @@
 # ⚡ PDA-UrjaBandhu – Power Management System
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![License](https://img.shields.io/badge/license-MIT-blue)]()
-[![Tech Stack](https://img.shields.io/badge/tech-stack-orange)]()
-
 A **real-time power outage monitoring and incident reporting system** that integrates geospatial data to display locality boundaries, track incidents, and manage household connections. Designed to improve transparency, communication, and operational efficiency in power management.
 
 ---
-![video](/demo/basic_user.webm)
+![Demo Video for basic user](/demo/basic_user.webm)
 
 
 ## 🚀 Features
